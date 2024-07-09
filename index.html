@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Notadinas, Notula, dan Berita Acara</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="manifest" href="/manifest.json">
     <style>
         input[type="file"] {
             display: none;
@@ -42,12 +41,22 @@
         </div>
     </div>
     <script>
+        let currentFiles = [];
+
         document.getElementById('directoryPicker').addEventListener('change', function (event) {
-            const files = event.target.files;
+            const files = Array.from(event.target.files);
+            updateCounts(files);
+            currentFiles = files;
+            setInterval(() => {
+                checkForUpdates(files);
+            }, 5000); // Check for updates every 5 seconds
+        });
+
+        function updateCounts(files) {
             let notadinasCount = 0;
             let beritaAcaraCount = 0;
 
-            Array.from(files).forEach(file => {
+            files.forEach(file => {
                 if (file.name.includes('Notadinas') || file.name.includes('Notula')) {
                     notadinasCount++;
                 } else if (file.name.includes('Berita Acara') || file.name.includes('BA')) {
@@ -57,15 +66,16 @@
 
             document.getElementById('notadinas-count').textContent = notadinasCount;
             document.getElementById('berita-acara-count').textContent = beritaAcaraCount;
-        });
+        }
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                }).catch(error => {
-                    console.log('Service Worker registration failed:', error);
-                });
+        function checkForUpdates(originalFiles) {
+            const input = document.getElementById('directoryPicker');
+            const files = Array.from(input.files);
+            
+            if (files.length !== originalFiles.length) {
+                updateCounts(files);
+                currentFiles = files;
+            }
         }
     </script>
 </body>
